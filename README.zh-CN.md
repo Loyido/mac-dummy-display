@@ -12,6 +12,7 @@
   - `Device Presets`：按设备名称切换分辨率。
   - `Refresh Rate`：切换当前模式支持的刷新率。
 - 新增可重复执行的 `build_app.sh` 打包脚本。
+- 新增 GitHub Actions 自动同步和自动打包流程，说明见 [自动同步和自动打包说明](docs/automation.zh-CN.md)。
 - 在切换显示模式后自动重启帧同步，让 Sunshine 捕获时跟随新的显示模式。
 
 ## 已加入的设备预设
