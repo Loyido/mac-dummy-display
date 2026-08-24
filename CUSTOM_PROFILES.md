@@ -25,6 +25,10 @@ The existing `/Users/no1801-hometheater/Documents/mac-dummy-display` checkout wa
 - Added named custom profile data to both `menu_app.swift` and `main.swift`.
 - Added duplicate-mode filtering so overlapping width/height/refresh combinations are registered once.
 - Register each custom profile's logical size and 2x backing size as a pair, matching the author's original HiDPI mode pattern.
+- Added Menu Bar quick switching:
+  - `Device Presets` switches by named device profile and preserves the current refresh rate when possible.
+  - `Refresh Rate` switches the current size to an available discrete refresh mode.
+  - `CVDisplayLink` is restarted after a successful mode switch so frame pacing follows the active mode.
 
 ## Added HiDPI Profiles
 
@@ -78,7 +82,7 @@ swiftc main.swift \
 - Build warnings are limited to the pre-existing macOS 15+ `CVDisplayLink` deprecation warnings.
 - Sunshine is installed at `/opt/homebrew/bin/sunshine`, pointing to `sunshine-beta/2026.619.155209`.
 - Sunshine config exists at `/Users/no1801-hometheater/.config/sunshine/sunshine.conf`.
-- Current Sunshine config includes `output_name = 7`.
+- Current Sunshine config includes `output_name = 10`.
 - Sunshine log already verifies the iPad mini 6 HiDPI path:
   - display name: `Ipad mini 6 Virtual Display`
   - logical mode: `1133x744 points`
@@ -88,6 +92,18 @@ swiftc main.swift \
   - client connection reached `CLIENT CONNECTED`
 - Parsec is installed at `/Applications/Parsec.app` and was visible as a running app through Codex's UI app list.
 - VS Code was visible as a running app, with the `mac-dummy-display` workspace open.
+
+## Chain Check Notes
+
+- DummyDisplay is running as `com.patrikviktor.DummyDisplay` in the user's launchd GUI session.
+- Current Sunshine config has `output_name = 10`, matching the active DummyDisplay ID seen in Sunshine logs.
+- Sunshine log verifies `Dummy Retina Display` at `1133x744 points`, `2266x1488 pixels`, `60 Hz`, selected for AVFoundation capture.
+- Sunshine version checked locally: `2026.619.155209`, publisher `LizardByte`.
+- Sunshine uses `encoder = videotoolbox`, `port = 47980`, and exposes the configuration UI on `47981`.
+- Parsec is installed at `/Applications/Parsec.app`, version `150.95.1`, and is visible in the user's launchd GUI session.
+- Moonlight is installed at `/Applications/Moonlight.app`, version `6.1.0`, and has an existing saved host preference. It was not visible as a running app during this check.
+- The current chain supports discrete refresh modes, not continuous ProMotion-style variable refresh. For best pacing, match the virtual display refresh rate to the client stream frame rate.
+- The built app in `/Users/no1801-hometheater/Documents/mac-dummy-display/DummyDisplay.app` is newer than `/Applications/DummyDisplay.app`. The `/Applications` copy could not be overwritten from the Codex sandbox.
 
 ## Pitfalls
 

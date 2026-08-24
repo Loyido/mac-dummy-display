@@ -6,6 +6,7 @@ A unified macOS Menu Bar application that creates a minimalist virtual display (
 
 - **Virtual Display Creation**: Instantiates a virtual screen (up to 5120x3200) with proper Retina (HiDPI) scaling support and multiple refresh rates (**60Hz, 90Hz, and 120Hz**).
 - **Custom Retina Device Profiles**: Adds paired logical and backing-pixel modes for MacBook Pro 14 Retina, iPad mini 6, and iPad Pro 11 while keeping the original upstream resolution set.
+- **Quick Switching Menus**: Adds Menu Bar submenus for named device presets and refresh-rate changes, so you do not need to remember each resolution number.
 - **Frame Pacing (Anti-Throttling)**: Implements `CVDisplayLink` to force constant frame rendering on the headless display, bypassing macOS's aggressive window server frame throttling.
 - **Detached Sunshine Execution**: Bypasses macOS Sequoia's screen recording permission loops. By running Sunshine as a detached `LaunchAgent`, permission is attributed directly to the `sunshine` binary (already approved) rather than the wrapper app.
 - **Auto-Configuring LaunchAgent**: Automatically generates the required LaunchAgent plist configuration locally using the active user's home path on app launch. No manual file copying required.
@@ -36,6 +37,13 @@ The menu app and CLI keep the author's original modes and add these paired 1x lo
 | iPad Pro 11 | 1210x834 | 2420x1668 | 60Hz, 120Hz |
 
 The logical and backing entries are both registered because macOS Display Settings exposes HiDPI choices more consistently when it can see the 1x logical size and the 2x backing size as a pair.
+
+The Menu Bar app exposes quick switching through:
+
+- `Device Presets`: switches the virtual display to a named logical resolution while preserving the current refresh rate when that rate exists for the selected profile.
+- `Refresh Rate`: switches the current virtual display size to `60Hz`, `90Hz`, or `120Hz` when that mode exists.
+
+This is discrete mode switching, not continuous ProMotion-style variable refresh. `CVDisplayLink` is restarted after a successful mode switch so frame pacing follows the new display mode.
 
 ---
 

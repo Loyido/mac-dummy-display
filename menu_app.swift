@@ -14,6 +14,32 @@ private struct DisplayProfile {
     let refreshRates: [Double]
 }
 
+private struct DisplayPreset {
+    let profileName: String
+    let logicalSize: DisplaySize
+    let backingSize: DisplaySize
+    let refreshRates: [Double]
+
+    init(profile: DisplayProfile) {
+        self.profileName = profile.name
+        self.logicalSize = profile.logicalSize
+        self.backingSize = profile.backingSize
+        self.refreshRates = profile.refreshRates
+    }
+
+    var menuTitle: String {
+        "\(profileName) - \(logicalSize.width)x\(logicalSize.height)"
+    }
+
+    func statusTitle(refreshRate: Double?) -> String {
+        if let refreshRate {
+            return "\(profileName) \(logicalSize.width)x\(logicalSize.height) @\(Int(refreshRate))Hz"
+        }
+
+        return "\(profileName) \(logicalSize.width)x\(logicalSize.height)"
+    }
+}
+
 private let defaultRefreshRates: [Double] = [60.0, 90.0, 120.0]
 
 private let authorDefaultResolutions: [DisplaySize] = [
@@ -47,6 +73,10 @@ private let customDisplayProfiles: [DisplayProfile] = [
         refreshRates: [60.0, 120.0]
     )
 ]
+
+private let customDisplayPresets: [DisplayPreset] = customDisplayProfiles.map { profile in
+    DisplayPreset(profile: profile)
+}
 
 private func makeVirtualDisplayModes() -> [CGVirtualDisplayMode] {
     var modes: [CGVirtualDisplayMode] = []
@@ -86,6 +116,10 @@ class DummyDisplayApp: NSObject, NSApplicationDelegate {
     // Menu items
     var toggleItem: NSMenuItem!
     var statusItemMenu: NSMenuItem!
+    var devicePresetMenuItem: NSMenuItem!
+    var devicePresetMenuItems: [NSMenuItem] = []
+    var refreshRateMenuItem: NSMenuItem!
+    var refreshRateMenuItems: [NSMenuItem] = []
     
     var toggleSunshineItem: NSMenuItem!
     var statusSunshineMenu: NSMenuItem!
@@ -110,6 +144,7 @@ class DummyDisplayApp: NSObject, NSApplicationDelegate {
         // Start a timer to monitor Sunshine status every 1.5 seconds
         statusTimer = Timer.scheduledTimer(withTimeInterval: 1.5, repeats: true) { [weak self] _ in
             self?.updateSunshineMenuStatus()
+            self?.updateDisplayMenuSelection()
         }
     }
     
@@ -124,6 +159,36 @@ class DummyDisplayApp: NSObject, NSApplicationDelegate {
         toggleItem = NSMenuItem(title: "Enable Virtual Display", action: #selector(toggleDisplay), keyEquivalent: "t")
         toggleItem.target = self
         menu.addItem(toggleItem)
+
+        let devicePresetMenu = NSMenu(title: "Device Presets")
+        devicePresetMenuItems = customDisplayPresets.enumerated().map { index, preset in
+            let item = NSMenuItem(title: preset.menuTitle, action: #selector(selectDisplayPreset(_:)), keyEquivalent: "")
+            item.target = self
+            item.tag = index
+            item.isEnabled = false
+            devicePresetMenu.addItem(item)
+            return item
+        }
+
+        devicePresetMenuItem = NSMenuItem(title: "Device Presets", action: nil, keyEquivalent: "")
+        devicePresetMenuItem.submenu = devicePresetMenu
+        devicePresetMenuItem.isEnabled = false
+        menu.addItem(devicePresetMenuItem)
+
+        let refreshRateMenu = NSMenu(title: "Refresh Rate")
+        refreshRateMenuItems = defaultRefreshRates.enumerated().map { index, refreshRate in
+            let item = NSMenuItem(title: "\(Int(refreshRate))Hz", action: #selector(selectRefreshRate(_:)), keyEquivalent: "")
+            item.target = self
+            item.tag = index
+            item.isEnabled = false
+            refreshRateMenu.addItem(item)
+            return item
+        }
+
+        refreshRateMenuItem = NSMenuItem(title: "Refresh Rate", action: nil, keyEquivalent: "")
+        refreshRateMenuItem.submenu = refreshRateMenu
+        refreshRateMenuItem.isEnabled = false
+        menu.addItem(refreshRateMenuItem)
         
         menu.addItem(NSMenuItem.separator())
         
@@ -160,6 +225,16 @@ class DummyDisplayApp: NSObject, NSApplicationDelegate {
         } else {
             startSunshine()
         }
+    }
+
+    @objc private func selectDisplayPreset(_ sender: NSMenuItem) {
+        guard customDisplayPresets.indices.contains(sender.tag) else { return }
+        applyDisplayPreset(customDisplayPresets[sender.tag])
+    }
+
+    @objc private func selectRefreshRate(_ sender: NSMenuItem) {
+        guard defaultRefreshRates.indices.contains(sender.tag) else { return }
+        applyRefreshRate(defaultRefreshRates[sender.tag])
     }
     
     func startDisplay() {
@@ -199,6 +274,8 @@ class DummyDisplayApp: NSObject, NSApplicationDelegate {
             startDisplayLink(displayID: displayID)
             toggleItem.title = "Disable Virtual Display"
             statusItemMenu.title = "Display: Active (ID: \(displayID))"
+            updateDisplayMenuState(isEnabled: true)
+            updateDisplayMenuSelection()
             print("Display settings applied successfully. Display ID: \(displayID)")
             
             // Automatically update Sunshine configuration file with new Display ID
@@ -223,7 +300,180 @@ class DummyDisplayApp: NSObject, NSApplicationDelegate {
         virtualDisplay = nil
         toggleItem.title = "Enable Virtual Display"
         statusItemMenu.title = "Display: Inactive"
+        updateDisplayMenuState(isEnabled: false)
         print("Display stopped.")
+    }
+
+    private func updateDisplayMenuState(isEnabled: Bool) {
+        devicePresetMenuItem?.isEnabled = isEnabled
+        refreshRateMenuItem?.isEnabled = isEnabled
+
+        for item in devicePresetMenuItems + refreshRateMenuItems {
+            item.isEnabled = isEnabled
+            item.state = .off
+        }
+    }
+
+    private func applyDisplayPreset(_ preset: DisplayPreset) {
+        guard let display = virtualDisplay else {
+            statusItemMenu.title = "Display: Inactive"
+            updateDisplayMenuState(isEnabled: false)
+            return
+        }
+
+        let displayID = display.displayID
+        let currentRefreshRate = currentDisplayRefreshRate(displayID: displayID)
+        guard let mode = findDisplayMode(displayID: displayID, preset: preset, preferredRefreshRate: currentRefreshRate) else {
+            statusItemMenu.title = "Preset missing: \(preset.profileName)"
+            print("Could not find mode for preset: \(preset.menuTitle)")
+            return
+        }
+
+        applyMode(mode, displayID: displayID, successMessage: "Applied preset: \(preset.menuTitle)", failureTitle: "Preset failed: \(preset.profileName)")
+    }
+
+    private func applyRefreshRate(_ refreshRate: Double) {
+        guard let display = virtualDisplay else {
+            statusItemMenu.title = "Display: Inactive"
+            updateDisplayMenuState(isEnabled: false)
+            return
+        }
+
+        let displayID = display.displayID
+        guard let currentMode = CGDisplayCopyDisplayMode(displayID),
+              let mode = findDisplayMode(displayID: displayID, size: displaySize(for: currentMode), refreshRate: refreshRate) else {
+            statusItemMenu.title = "Refresh unavailable: \(Int(refreshRate))Hz"
+            print("Could not find current-size mode at \(Int(refreshRate))Hz")
+            return
+        }
+
+        applyMode(mode, displayID: displayID, successMessage: "Applied refresh rate: \(Int(refreshRate))Hz", failureTitle: "Refresh failed: \(Int(refreshRate))Hz")
+    }
+
+    private func applyMode(_ mode: CGDisplayMode, displayID: CGDirectDisplayID, successMessage: String, failureTitle: String) {
+        let error = CGDisplaySetDisplayMode(displayID, mode, nil)
+        if error == .success {
+            print(successMessage)
+            restartDisplayLink(displayID: displayID)
+            updateDisplayMenuSelection()
+        } else {
+            statusItemMenu.title = failureTitle
+            print("\(failureTitle). CGError: \(error.rawValue)")
+        }
+    }
+
+    private func findDisplayMode(displayID: CGDirectDisplayID, preset: DisplayPreset, preferredRefreshRate: Double?) -> CGDisplayMode? {
+        let refreshRates = orderedRefreshRates(preferred: preferredRefreshRate, available: preset.refreshRates)
+
+        for refreshRate in refreshRates {
+            if let mode = findDisplayMode(displayID: displayID, size: preset.logicalSize, refreshRate: refreshRate) {
+                return mode
+            }
+
+            if let mode = findDisplayMode(displayID: displayID, size: preset.backingSize, refreshRate: refreshRate) {
+                return mode
+            }
+        }
+
+        return nil
+    }
+
+    private func findDisplayMode(displayID: CGDirectDisplayID, size: DisplaySize, refreshRate: Double) -> CGDisplayMode? {
+        guard let modes = allDisplayModes(displayID: displayID) else {
+            return nil
+        }
+
+        return modes.first { mode in
+            modeMatches(mode, size: size, refreshRate: refreshRate)
+        }
+    }
+
+    private func allDisplayModes(displayID: CGDirectDisplayID) -> [CGDisplayMode]? {
+        let options = [kCGDisplayShowDuplicateLowResolutionModes as String: true] as CFDictionary
+        return CGDisplayCopyAllDisplayModes(displayID, options) as? [CGDisplayMode]
+    }
+
+    private func updateDisplayMenuSelection() {
+        guard let display = virtualDisplay else {
+            updateDisplayMenuState(isEnabled: false)
+            return
+        }
+
+        let displayID = display.displayID
+        guard let currentMode = CGDisplayCopyDisplayMode(displayID) else { return }
+
+        let currentRefreshRate = normalizedRefreshRate(currentMode.refreshRate)
+        var matchedPreset: DisplayPreset?
+
+        for (index, preset) in customDisplayPresets.enumerated() {
+            let isMatch = modeSizeMatches(currentMode, size: preset.logicalSize) ||
+                modeSizeMatches(currentMode, size: preset.backingSize)
+
+            devicePresetMenuItems[index].state = isMatch ? .on : .off
+            if isMatch {
+                matchedPreset = preset
+            }
+        }
+
+        for (index, refreshRate) in defaultRefreshRates.enumerated() {
+            let hasCurrentSizeMode = findDisplayMode(displayID: displayID, size: displaySize(for: currentMode), refreshRate: refreshRate) != nil
+            refreshRateMenuItems[index].isEnabled = hasCurrentSizeMode
+            refreshRateMenuItems[index].state = currentRefreshRate.map { abs($0 - refreshRate) < 0.5 } == true ? .on : .off
+        }
+
+        if let preset = matchedPreset {
+            statusItemMenu.title = "Display: \(preset.statusTitle(refreshRate: currentRefreshRate))"
+        } else {
+            let size = displaySize(for: currentMode)
+            if let currentRefreshRate {
+                statusItemMenu.title = "Display: \(size.width)x\(size.height) @\(Int(currentRefreshRate))Hz"
+            } else {
+                statusItemMenu.title = "Display: \(size.width)x\(size.height)"
+            }
+        }
+    }
+
+    private func orderedRefreshRates(preferred: Double?, available: [Double]) -> [Double] {
+        var orderedRates: [Double] = []
+
+        if let preferred, available.contains(where: { abs($0 - preferred) < 0.5 }) {
+            orderedRates.append(preferred)
+        }
+
+        orderedRates.append(contentsOf: available.sorted(by: >).filter { rate in
+            !orderedRates.contains(where: { abs($0 - rate) < 0.5 })
+        })
+
+        return orderedRates
+    }
+
+    private func currentDisplayRefreshRate(displayID: CGDirectDisplayID) -> Double? {
+        guard let currentMode = CGDisplayCopyDisplayMode(displayID) else { return nil }
+        return normalizedRefreshRate(currentMode.refreshRate)
+    }
+
+    private func normalizedRefreshRate(_ refreshRate: Double) -> Double? {
+        refreshRate > 0 ? refreshRate : nil
+    }
+
+    private func displaySize(for mode: CGDisplayMode) -> DisplaySize {
+        (UInt32(mode.width), UInt32(mode.height))
+    }
+
+    private func modeMatches(_ mode: CGDisplayMode, size: DisplaySize, refreshRate: Double) -> Bool {
+        let modeRefreshRate = mode.refreshRate
+        let refreshMatches = modeRefreshRate == 0 || abs(modeRefreshRate - refreshRate) < 0.5
+
+        return modeSizeMatches(mode, size: size) && refreshMatches
+    }
+
+    private func modeSizeMatches(_ mode: CGDisplayMode, size: DisplaySize) -> Bool {
+        UInt32(mode.width) == size.width && UInt32(mode.height) == size.height
+    }
+
+    private func restartDisplayLink(displayID: CGDirectDisplayID) {
+        stopDisplayLink()
+        startDisplayLink(displayID: displayID)
     }
     
     func startDisplayLink(displayID: CGDirectDisplayID) {
