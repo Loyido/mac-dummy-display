@@ -1,0 +1,50 @@
+name: Build macOS App
+
+on:
+  push:
+    branches:
+      - retina-device-profiles
+  pull_request:
+    branches:
+      - retina-device-profiles
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-macos-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build DummyDisplay.app
+    runs-on: macos-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - name: Show build environment
+        run: |
+          sw_vers
+          swift --version
+
+      - name: Build app bundle
+        run: ./build_app.sh
+
+      - name: Verify app bundle
+        run: |
+          test -x DummyDisplay.app/Contents/MacOS/dummy_display_menu
+          codesign --verify --deep --strict DummyDisplay.app
+
+      - name: Package app bundle
+        run: ditto -c -k --keepParent DummyDisplay.app DummyDisplay.app.zip
+
+      - name: Upload app artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: DummyDisplay-macos-${{ github.sha }}
+          path: DummyDisplay.app.zip
+          if-no-files-found: error
+          retention-days: 30
