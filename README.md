@@ -1,5 +1,7 @@
 # macOS Virtual Display & Sunshine Controller
 
+Chinese documentation: [README.zh-CN.md](README.zh-CN.md)
+
 A unified macOS Menu Bar application that creates a minimalist virtual display (dummy display) and manages LizardByte's Sunshine streaming server, optimized for low-latency, high-refresh-rate streaming to clients like Moonlight.
 
 ## Features
