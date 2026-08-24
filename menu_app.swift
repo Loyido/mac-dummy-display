@@ -5,6 +5,77 @@ import CoreVideo
 // Disable buffering to flush stdout immediately for log capture
 setbuf(stdout, nil)
 
+private typealias DisplaySize = (width: UInt32, height: UInt32)
+
+private struct DisplayProfile {
+    let name: String
+    let logicalSize: DisplaySize
+    let backingSize: DisplaySize
+    let refreshRates: [Double]
+}
+
+private let defaultRefreshRates: [Double] = [60.0, 90.0, 120.0]
+
+private let authorDefaultResolutions: [DisplaySize] = [
+    (1440, 900),
+    (1680, 1050),
+    (1920, 1200),
+    (2560, 1600),
+    (2880, 1800),
+    (3360, 2100),
+    (3840, 2400),
+    (5120, 3200)
+]
+
+private let customDisplayProfiles: [DisplayProfile] = [
+    DisplayProfile(
+        name: "MacBook Pro 14 Retina",
+        logicalSize: (1512, 982),
+        backingSize: (3024, 1964),
+        refreshRates: [60.0, 120.0]
+    ),
+    DisplayProfile(
+        name: "iPad mini 6",
+        logicalSize: (1133, 744),
+        backingSize: (2266, 1488),
+        refreshRates: [60.0]
+    ),
+    DisplayProfile(
+        name: "iPad Pro 11",
+        logicalSize: (1210, 834),
+        backingSize: (2420, 1668),
+        refreshRates: [60.0, 120.0]
+    )
+]
+
+private func makeVirtualDisplayModes() -> [CGVirtualDisplayMode] {
+    var modes: [CGVirtualDisplayMode] = []
+    var seenModes = Set<String>()
+
+    func appendMode(size: DisplaySize, refreshRate: Double) {
+        let key = "\(size.width)x\(size.height)@\(Int(refreshRate * 1000))"
+        guard !seenModes.contains(key) else { return }
+
+        modes.append(CGVirtualDisplayMode(width: size.width, height: size.height, refreshRate: refreshRate))
+        seenModes.insert(key)
+    }
+
+    for resolution in authorDefaultResolutions {
+        for refreshRate in defaultRefreshRates {
+            appendMode(size: resolution, refreshRate: refreshRate)
+        }
+    }
+
+    for profile in customDisplayProfiles {
+        print("Adding profile: \(profile.name) logical \(profile.logicalSize.width)x\(profile.logicalSize.height), backing \(profile.backingSize.width)x\(profile.backingSize.height)")
+        for refreshRate in profile.refreshRates {
+            appendMode(size: profile.backingSize, refreshRate: refreshRate)
+        }
+    }
+
+    return modes
+}
+
 class DummyDisplayApp: NSObject, NSApplicationDelegate {
     var statusItem: NSStatusItem!
     var virtualDisplay: CGVirtualDisplay?
@@ -114,25 +185,10 @@ class DummyDisplayApp: NSObject, NSApplicationDelegate {
         let displayID = display.displayID
         print("Virtual display created with Display ID: \(displayID)")
         
-        let resolutions: [(UInt32, UInt32)] = [
-            (1440, 900),
-            (1680, 1050),
-            (1920, 1200),
-            (2560, 1600),
-            (2880, 1800),
-            (3360, 2100),
-            (3840, 2400),
-            (5120, 3200)
-        ]
-        
-        var modes: [CGVirtualDisplayMode] = []
-        let refreshRates: [Double] = [60.0, 90.0, 120.0]
-        for res in resolutions {
-            for rate in refreshRates {
-                let mode = CGVirtualDisplayMode(width: res.0, height: res.1, refreshRate: rate)
-                modes.append(mode)
-            }
-        }
+        // CGVirtualDisplayMode uses backing pixels. With hiDPI enabled, macOS exposes
+        // the matching 2x logical sizes in System Settings.
+        let modes = makeVirtualDisplayModes()
+        print("Configured \(modes.count) virtual display modes.")
         
         let settings = CGVirtualDisplaySettings()
         settings.modes = modes
