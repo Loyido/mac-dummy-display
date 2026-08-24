@@ -29,12 +29,6 @@ private let authorDefaultResolutions: [DisplaySize] = [
 
 private let customDisplayProfiles: [DisplayProfile] = [
     DisplayProfile(
-        name: "MacBook Pro 14 Retina",
-        logicalSize: (1512, 982),
-        backingSize: (3024, 1964),
-        refreshRates: [60.0, 120.0]
-    ),
-    DisplayProfile(
         name: "MacBook Pro 14 Safe Area",
         logicalSize: (1512, 945),
         backingSize: (3024, 1890),

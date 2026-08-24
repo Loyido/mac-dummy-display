@@ -34,7 +34,6 @@ The existing `/Users/no1801-hometheater/Documents/mac-dummy-display` checkout wa
 
 | Profile | Logical size | Backing pixels | Refresh rates |
 | --- | ---: | ---: | --- |
-| MacBook Pro 14 Retina | `1512x982` | `3024x1964` | `60Hz`, `120Hz` |
 | MacBook Pro 14 Safe Area | `1512x945` | `3024x1890` | `60Hz`, `120Hz` |
 | 1080p 16:9 | `1920x1080` | `3840x2160` | `60Hz`, `120Hz` |
 | iPad mini 6 | `1133x744` | `2266x1488` | `60Hz` |
@@ -42,7 +41,7 @@ The existing `/Users/no1801-hometheater/Documents/mac-dummy-display` checkout wa
 
 The logical and backing entries are both registered because macOS Display Settings exposes HiDPI choices more consistently when it can see the 1x logical size and the 2x backing size as a pair, such as `1133x744` and `2266x1488` for iPad mini 6.
 
-`MacBook Pro 14 Retina` targets the full 3024x1964 panel. `MacBook Pro 14 Safe Area` targets the area below the camera housing, which is useful when a full-screen streaming client avoids the notch region and otherwise shows side bars.
+`MacBook Pro 14 Safe Area` targets the area below the camera housing, which is useful when a full-screen streaming client avoids the notch region and otherwise shows side bars.
 
 ## Build Commands
 
