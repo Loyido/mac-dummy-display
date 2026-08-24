@@ -69,6 +69,7 @@ private func makeVirtualDisplayModes() -> [CGVirtualDisplayMode] {
     for profile in customDisplayProfiles {
         print("Adding profile: \(profile.name) logical \(profile.logicalSize.width)x\(profile.logicalSize.height), backing \(profile.backingSize.width)x\(profile.backingSize.height)")
         for refreshRate in profile.refreshRates {
+            appendMode(size: profile.logicalSize, refreshRate: refreshRate)
             appendMode(size: profile.backingSize, refreshRate: refreshRate)
         }
     }

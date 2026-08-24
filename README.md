@@ -5,7 +5,7 @@ A unified macOS Menu Bar application that creates a minimalist virtual display (
 ## Features
 
 - **Virtual Display Creation**: Instantiates a virtual screen (up to 5120x3200) with proper Retina (HiDPI) scaling support and multiple refresh rates (**60Hz, 90Hz, and 120Hz**).
-- **Custom Retina Device Profiles**: Adds backing-pixel modes for MacBook Pro 14 Retina, iPad mini 6, and iPad Pro 11 while keeping the original upstream resolution set.
+- **Custom Retina Device Profiles**: Adds paired logical and backing-pixel modes for MacBook Pro 14 Retina, iPad mini 6, and iPad Pro 11 while keeping the original upstream resolution set.
 - **Frame Pacing (Anti-Throttling)**: Implements `CVDisplayLink` to force constant frame rendering on the headless display, bypassing macOS's aggressive window server frame throttling.
 - **Detached Sunshine Execution**: Bypasses macOS Sequoia's screen recording permission loops. By running Sunshine as a detached `LaunchAgent`, permission is attributed directly to the `sunshine` binary (already approved) rather than the wrapper app.
 - **Auto-Configuring LaunchAgent**: Automatically generates the required LaunchAgent plist configuration locally using the active user's home path on app launch. No manual file copying required.
@@ -27,7 +27,7 @@ A unified macOS Menu Bar application that creates a minimalist virtual display (
 
 ## Custom Retina Profiles
 
-The menu app and CLI keep the author's original modes and add these 2x HiDPI backing modes:
+The menu app and CLI keep the author's original modes and add these paired 1x logical and 2x HiDPI backing modes:
 
 | Profile | Logical size shown by macOS | Backing pixels passed to `CGVirtualDisplayMode` | Refresh rates |
 | --- | ---: | ---: | --- |
@@ -35,7 +35,7 @@ The menu app and CLI keep the author's original modes and add these 2x HiDPI bac
 | iPad mini 6 | 1133x744 | 2266x1488 | 60Hz |
 | iPad Pro 11 | 1210x834 | 2420x1668 | 60Hz, 120Hz |
 
-`CGVirtualDisplayMode(width:height:)` receives backing pixels. With `settings.hiDPI = 1`, macOS exposes the matching logical Retina size in System Settings and to capture tools such as Sunshine.
+The logical and backing entries are both registered because macOS Display Settings exposes HiDPI choices more consistently when it can see the 1x logical size and the 2x backing size as a pair.
 
 ---
 

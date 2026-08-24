@@ -24,6 +24,7 @@ The existing `/Users/no1801-hometheater/Documents/mac-dummy-display` checkout wa
 - Kept the author's original default refresh rates: `60Hz`, `90Hz`, `120Hz`.
 - Added named custom profile data to both `menu_app.swift` and `main.swift`.
 - Added duplicate-mode filtering so overlapping width/height/refresh combinations are registered once.
+- Register each custom profile's logical size and 2x backing size as a pair, matching the author's original HiDPI mode pattern.
 
 ## Added HiDPI Profiles
 
@@ -33,7 +34,7 @@ The existing `/Users/no1801-hometheater/Documents/mac-dummy-display` checkout wa
 | iPad mini 6 | `1133x744` | `2266x1488` | `60Hz` |
 | iPad Pro 11 | `1210x834` | `2420x1668` | `60Hz`, `120Hz` |
 
-`CGVirtualDisplayMode(width:height:)` is fed backing pixels. With `settings.hiDPI = 1`, macOS exposes the corresponding 2x logical size, such as `1133x744` for the iPad mini 6 profile backed by `2266x1488`.
+The logical and backing entries are both registered because macOS Display Settings exposes HiDPI choices more consistently when it can see the 1x logical size and the 2x backing size as a pair, such as `1133x744` and `2266x1488` for iPad mini 6.
 
 ## Build Commands
 
