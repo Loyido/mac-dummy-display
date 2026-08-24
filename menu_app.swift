@@ -61,6 +61,18 @@ private let customDisplayProfiles: [DisplayProfile] = [
         refreshRates: [60.0, 120.0]
     ),
     DisplayProfile(
+        name: "MacBook Pro 14 Safe Area",
+        logicalSize: (1512, 945),
+        backingSize: (3024, 1890),
+        refreshRates: [60.0, 120.0]
+    ),
+    DisplayProfile(
+        name: "1080p 16:9",
+        logicalSize: (1920, 1080),
+        backingSize: (3840, 2160),
+        refreshRates: [60.0, 120.0]
+    ),
+    DisplayProfile(
         name: "iPad mini 6",
         logicalSize: (1133, 744),
         backingSize: (2266, 1488),

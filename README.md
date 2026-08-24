@@ -5,7 +5,7 @@ A unified macOS Menu Bar application that creates a minimalist virtual display (
 ## Features
 
 - **Virtual Display Creation**: Instantiates a virtual screen (up to 5120x3200) with proper Retina (HiDPI) scaling support and multiple refresh rates (**60Hz, 90Hz, and 120Hz**).
-- **Custom Retina Device Profiles**: Adds paired logical and backing-pixel modes for MacBook Pro 14 Retina, iPad mini 6, and iPad Pro 11 while keeping the original upstream resolution set.
+- **Custom Retina Device Profiles**: Adds paired logical and backing-pixel modes for MacBook Pro 14 Retina, MacBook Pro 14 Safe Area, 1080p 16:9, iPad mini 6, and iPad Pro 11 while keeping the original upstream resolution set.
 - **Quick Switching Menus**: Adds Menu Bar submenus for named device presets and refresh-rate changes, so you do not need to remember each resolution number.
 - **Frame Pacing (Anti-Throttling)**: Implements `CVDisplayLink` to force constant frame rendering on the headless display, bypassing macOS's aggressive window server frame throttling.
 - **Detached Sunshine Execution**: Bypasses macOS Sequoia's screen recording permission loops. By running Sunshine as a detached `LaunchAgent`, permission is attributed directly to the `sunshine` binary (already approved) rather than the wrapper app.
@@ -33,6 +33,8 @@ The menu app and CLI keep the author's original modes and add these paired 1x lo
 | Profile | Logical size shown by macOS | Backing pixels passed to `CGVirtualDisplayMode` | Refresh rates |
 | --- | ---: | ---: | --- |
 | MacBook Pro 14 Retina | 1512x982 | 3024x1964 | 60Hz, 120Hz |
+| MacBook Pro 14 Safe Area | 1512x945 | 3024x1890 | 60Hz, 120Hz |
+| 1080p 16:9 | 1920x1080 | 3840x2160 | 60Hz, 120Hz |
 | iPad mini 6 | 1133x744 | 2266x1488 | 60Hz |
 | iPad Pro 11 | 1210x834 | 2420x1668 | 60Hz, 120Hz |
 
@@ -44,6 +46,8 @@ The Menu Bar app exposes quick switching through:
 - `Refresh Rate`: switches the current virtual display size to `60Hz`, `90Hz`, or `120Hz` when that mode exists.
 
 This is discrete mode switching, not continuous ProMotion-style variable refresh. `CVDisplayLink` is restarted after a successful mode switch so frame pacing follows the new display mode.
+
+For a 14-inch MacBook Pro client that keeps full-screen apps below the camera housing, use `MacBook Pro 14 Safe Area` to target the 1512x945 safe area and reduce side bars.
 
 ---
 
