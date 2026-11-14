@@ -7,7 +7,7 @@ A unified macOS Menu Bar application that creates a minimalist virtual display (
 ## Features
 
 - **Virtual Display Creation**: Instantiates a virtual screen (up to 5120x3200) with proper Retina (HiDPI) scaling support and multiple refresh rates (**60Hz, 90Hz, and 120Hz**).
-- **Custom Retina Device Profiles**: Adds paired logical and backing-pixel modes for MacBook Pro 14 Safe Area, 1080p 16:9, iPad mini 6, and iPad Pro 11 while keeping the original upstream resolution set.
+- **Custom Retina Device Profiles**: Adds paired logical and backing-pixel modes for MacBook Pro 14 Safe Area, 1080p 16:9, iPad mini 6, iPad Pro 11, and the unfolded iPhone Duo while keeping the original upstream resolution set.
 - **Quick Switching Menus**: Adds Menu Bar submenus for named device presets and refresh-rate changes, so you do not need to remember each resolution number.
 - **Frame Pacing (Anti-Throttling)**: Implements `CVDisplayLink` to force constant frame rendering on the headless display, bypassing macOS's aggressive window server frame throttling.
 - **Detached Sunshine Execution**: Bypasses macOS Sequoia's screen recording permission loops. By running Sunshine as a detached `LaunchAgent`, permission is attributed directly to the `sunshine` binary (already approved) rather than the wrapper app.
@@ -38,6 +38,9 @@ The menu app and CLI keep the author's original modes and add these paired 1x lo
 | 1080p 16:9 | 1920x1080 | 3840x2160 | 60Hz, 120Hz |
 | iPad mini 6 | 1133x744 | 2266x1488 | 60Hz |
 | iPad Pro 11 | 1210x834 | 2420x1668 | 60Hz, 120Hz |
+| iPhone Duo Inner Display | 1335x939 | 2670x1878 | 60Hz, 120Hz |
+
+The iPhone Duo preset uses the full unfolded inner display in landscape (445:313). See [Apple's display specifications](https://www.apple.com/iphone-duo/specs/).
 
 The logical and backing entries are both registered because macOS Display Settings exposes HiDPI choices more consistently when it can see the 1x logical size and the 2x backing size as a pair.
 

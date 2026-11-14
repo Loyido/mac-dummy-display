@@ -51,6 +51,12 @@ private let customDisplayProfiles: [DisplayProfile] = [
         logicalSize: (1210, 834),
         backingSize: (2420, 1668),
         refreshRates: [60.0, 120.0]
+    ),
+    DisplayProfile(
+        name: "iPhone Duo Inner Display",
+        logicalSize: (1335, 939),
+        backingSize: (2670, 1878),
+        refreshRates: [60.0, 120.0]
     )
 ]
 

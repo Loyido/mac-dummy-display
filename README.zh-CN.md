@@ -23,12 +23,14 @@
 | 1080p 16:9 | 1920 x 1080 | 3840 x 2160 | 60Hz, 120Hz |
 | iPad mini 6 | 1133 x 744 | 2266 x 1488 | 60Hz |
 | iPad Pro 11 | 1210 x 834 | 2420 x 1668 | 60Hz, 120Hz |
+| iPhone Duo Inner Display | 1335 x 939 | 2670 x 1878 | 60Hz, 120Hz |
 
 说明：
 
 - `MacBook Pro 14 Safe Area` 是为 14 英寸 MacBook Pro 全屏显示准备的安全区域版本。它避开了摄像头刘海区域导致的可用高度变化，比完整的 `1512 x 982` 更适合你的实际串流画面。
 - `1080p 16:9` 是标准 16:9 快速切换选项，适合电视、显示器、Parsec 窗口或普通 1080p 客户端。
 - `iPad mini 6` 和 `iPad Pro 11` 使用的是 HiDPI 逻辑分辨率加 2x backing 像素的组合。macOS 设置里有时会显示 backing 数值，这是系统显示方式，不代表配置错误。
+- `iPhone Duo Inner Display` 对应手机展开后的横屏内屏，宽高比为 445:313。规格见 [Apple 官网](https://www.apple.com.cn/iphone-duo/specs/)。
 
 ## 编译打包
 
@@ -57,6 +59,7 @@ cd /Users/no1801-hometheater/Documents/mac-dummy-display
    - `1080p 16:9`
    - `iPad mini 6`
    - `iPad Pro 11`
+   - `iPhone Duo Inner Display`
 5. 如果当前预设支持多个刷新率，再进入 `Refresh Rate` 选择 `60Hz` 或 `120Hz`。
 6. 打开 Sunshine、Parsec、Moonlight 或 VoldLink 进行连接测试。
 
